@@ -16,7 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from playerstats import views as playerstats_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('get-player-stats', playerstats_views.get_player_stats),
+    path('refresh-data', playerstats_views.refresh_data),
 ]

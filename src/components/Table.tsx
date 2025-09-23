@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from "react";
 import {
   MaterialReactTable,
   useMaterialReactTable,
@@ -6,28 +6,28 @@ import {
   type MRT_ColumnFiltersState,
   type MRT_PaginationState,
   type MRT_SortingState,
-} from 'material-react-table';
-
+} from "material-react-table";
 
 type User = {
-  "Player name": string;
+  id: number;
+  player_name: string;
   position: string;
-  Games: number;
-  "At-bat": number;
-  Runs: number;
-  Hits: number;
-  "Double (2B)": number;
-  "third baseman": number;
-  "home run": number;
-  "run batted in": number;
-  "a walk": number;
-  Strikeouts: number;
-  "stolen base": number;
-  "Caught stealing": number;
-  AVG: number;
-  "On-base Percentage": number;
-  "Slugging Percentage": number;
-  "On-base Plus Slugging": number;
+  games: number;
+  at_bat: number;
+  runs: number;
+  hits: number;
+  double_2b: number;
+  third_baseman: number;
+  home_run: number;
+  run_batted_in: number;
+  a_walk: number;
+  strikeouts: number;
+  stolen_base: number;
+  caught_stealing: number;
+  avg: number;
+  on_base_percentage: number;
+  slugging_percentage: number;
+  on_base_plus_slugging: number;
 };
 
 const Table = () => {
@@ -42,7 +42,7 @@ const Table = () => {
   const [columnFilters, setColumnFilters] = useState<MRT_ColumnFiltersState>(
     [],
   );
-  const [globalFilter, setGlobalFilter] = useState('');
+  const [globalFilter, setGlobalFilter] = useState("");
   const [sorting, setSorting] = useState<MRT_SortingState>([]);
   const [pagination, setPagination] = useState<MRT_PaginationState>({
     pageIndex: 0,
@@ -58,20 +58,23 @@ const Table = () => {
         setIsRefetching(true);
       }
 
-        const url = new URL('https://api.hirefraction.com/api/test/baseball');
-        try {
-          const response = await fetch(url.href);
-          const json = (await response.json()) as User[];
-          setData(json);
-          setRowCount(json.length);
-        } catch (error) {
-          setIsError(true);
-          console.error(error);
-          return;
-        }
-        setIsError(false);
-        setIsLoading(false);
-        setIsRefetching(false);
+      // const url = new URL('https://api.hirefraction.com/api/test/baseball');
+      const API_URL = process.env.REACT_APP_API_URL;
+      const url = new URL("/get-player-stats", API_URL);
+      try {
+        const response = await fetch(url.href);
+        const json = (await response.json()) as User[];
+        setData(json);
+        console.log(json);
+        setRowCount(json.length);
+      } catch (error) {
+        setIsError(true);
+        console.error(error);
+        return;
+      }
+      setIsError(false);
+      setIsLoading(false);
+      setIsRefetching(false);
     };
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -84,29 +87,28 @@ const Table = () => {
   ]);
 
   const columns = useMemo<MRT_ColumnDef<User>[]>(
-      () => [
-        { accessorKey: 'Player name', header: 'Player Name' },
-        { accessorKey: 'position', header: 'Position' },
-        { accessorKey: 'Games', header: 'Games' },
-        { accessorKey: 'At-bat', header: 'At-bat' },
-        { accessorKey: 'Runs', header: 'Runs' },
-        { accessorKey: 'Hits', header: 'Hits' },
-        { accessorKey: 'Double (2B)', header: 'Double (2B)' },
-        { accessorKey: 'third baseman', header: 'Third Baseman' },
-        { accessorKey: 'home run', header: 'Home Run' },
-        { accessorKey: 'run batted in', header: 'Run Batted In' },
-        { accessorKey: 'a walk', header: 'Walks' },
-        { accessorKey: 'Strikeouts', header: 'Strikeouts' },
-        { accessorKey: 'stolen base', header: 'Stolen Base' },
-        { accessorKey: 'Caught stealing', header: 'Caught Stealing' },
-        { accessorKey: 'AVG', header: 'AVG' },
-        { accessorKey: 'On-base Percentage', header: 'On-base %' },
-        { accessorKey: 'Slugging Percentage', header: 'Slugging %' },
-        { accessorKey: 'On-base Plus Slugging', header: 'OPS' },
-      ],
+    () => [
+      { accessorKey: "player_name", header: "Player Name" },
+      { accessorKey: "position", header: "Position" },
+      { accessorKey: "games", header: "Games" },
+      { accessorKey: "at_bat", header: "At-bat" },
+      { accessorKey: "runs", header: "Runs" },
+      { accessorKey: "hits", header: "Hits" },
+      { accessorKey: "double_2b", header: "Double (2B)" },
+      { accessorKey: "third_baseman", header: "Third Baseman" },
+      { accessorKey: "home_run", header: "Home Run" },
+      { accessorKey: "run_batted_in", header: "Run Batted In" },
+      { accessorKey: "a_walk", header: "Walks" },
+      { accessorKey: "strikeouts", header: "Strikeouts" },
+      { accessorKey: "stolen_base", header: "Stolen Base" },
+      { accessorKey: "caught_stealing", header: "Caught Stealing" },
+      { accessorKey: "avg", header: "AVG" },
+      { accessorKey: "on_base_percentage", header: "On-base %" },
+      { accessorKey: "slugging_percentage", header: "Slugging %" },
+      { accessorKey: "on_base_plus_slugging", header: "OPS" },
+    ],
     [],
   );
-
   const table = useMaterialReactTable({
     columns,
     data,
@@ -115,11 +117,11 @@ const Table = () => {
     initialState: { showColumnFilters: true },
     manualFiltering: true,
     manualPagination: true,
-    manualSorting: false,
+    manualSorting: true,
     muiToolbarAlertBannerProps: isError
       ? {
-          color: 'error',
-          children: 'Error loading data',
+          color: "error",
+          children: "Error loading data",
         }
       : undefined,
     onColumnFiltersChange: setColumnFilters,
@@ -142,4 +144,3 @@ const Table = () => {
 };
 
 export default Table;
-

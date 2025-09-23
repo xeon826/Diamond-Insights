@@ -1,0 +1,45 @@
+from django.shortcuts import render
+from .models import Player
+from django.http import JsonResponse
+import json
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
+import requests
+
+def get_player_stats(request):
+    players = list(Player.objects.all().values())
+    return JsonResponse(players, safe=False)
+
+def refresh_data(request):
+    response = requests.get("https://api.hirefraction.com/api/test/baseball")
+    players_data = response.json()
+    for pdata in players_data:
+        caught_stealing_val = pdata.get('Caught stealing', 0)
+        if caught_stealing_val == '--':
+            caught_stealing_val = 0
+        else:
+            caught_stealing_val = int(caught_stealing_val)
+        Player.objects.update_or_create(
+            player_name=pdata.get('Player name', ''),
+            defaults={
+                'position': pdata.get('position', ''),
+                'games': pdata.get('Games', 0),
+                'at_bat': pdata.get('At-bat', 0),
+                'runs': pdata.get('Runs', 0),
+                'hits': pdata.get('Hits', 0),
+                'double_2b': pdata.get('Double (2B)', 0),
+                'third_baseman': pdata.get('third baseman', 0),
+                'home_run': pdata.get('home run', 0),
+                'run_batted_in': pdata.get('run batted in', 0),
+                'a_walk': pdata.get('a walk', 0),
+                'strikeouts': pdata.get('Strikeouts', 0),
+                'stolen_base': pdata.get('stolen base', 0),
+                'caught_stealing': caught_stealing_val,
+                'avg': pdata.get('AVG', 0),
+                'on_base_percentage': pdata.get('On-base Percentage', 0),
+                'slugging_percentage': pdata.get('Slugging Percentage', 0),
+                'on_base_plus_slugging': pdata.get('On-base Plus Slugging', 0),
+            }
+        )
+    return JsonResponse({'status': 'success', 'players_saved': len(players_data)})
+
