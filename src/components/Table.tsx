@@ -115,7 +115,7 @@ const Table = () => {
     initialState: { showColumnFilters: true },
     manualFiltering: true,
     manualPagination: true,
-    manualSorting: true,
+    manualSorting: false,
     muiToolbarAlertBannerProps: isError
       ? {
           color: 'error',
