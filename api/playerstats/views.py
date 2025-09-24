@@ -3,6 +3,7 @@ from .models import Player
 from django.http import JsonResponse
 import json
 from django.views.decorators.csrf import csrf_exempt
+import json
 from django.http import HttpResponse
 import requests
 from openai import OpenAI
@@ -13,15 +14,20 @@ client = OpenAI(api_key=api_key)
 
 
 @csrf_exempt
-async def query_openai(messages):
-    response = client.responses.create(
-        model="gpt-4o",
-        instructions="You are a coding assistant that talks like a pirate.",
-        input="How do I check if a Python object is an instance of a class?",
-    )
-
-    # response.output_text is a string
-    return JsonResponse({"response": response.output_text})
+def query_openai(request):
+    if request.method == 'POST':
+        try:
+            body = json.loads(request.body.decode('utf-8'))
+            prompt = body.get('prompt', '')
+        except Exception:
+            prompt = ''
+        response = client.responses.create(
+            model="gpt-4-turbo",
+            instructions="You are a sports expert. Provide a summary based on the player statistics data. Keep your response under 200 words.",
+            input=prompt,
+        )
+        return JsonResponse({'response': response.output_text})
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 
 def get_player_stats(request):
