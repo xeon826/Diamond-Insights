@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComment, faRobot } from "@fortawesome/free-solid-svg-icons";
+import { TypeAnimation } from "react-type-animation";
 import {
   MaterialReactTable,
   useMaterialReactTable,
@@ -223,7 +224,15 @@ const Table = () => {
               <div>Loading...</div>
             ) : (
               <>
-                <p className="speech bubble whitespace-pre-wrap text-sm">{modalContent}</p>
+                <p className="speech bubble whitespace-pre-wrap text-sm">
+                <TypeAnimation
+                  sequence={[modalContent]}
+                  style={{ fontSize: "0.75em" }}
+                  speed={100}
+                  repeat={false}
+                />
+                </p>
+
                 <div>
                   <FontAwesomeIcon className="ml-2 float-left" icon={faRobot} />
                 </div>
