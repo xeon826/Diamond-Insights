@@ -6,8 +6,15 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <div className="w-full overflow-scroll">
+        <div className="flex items-center">
+          <h1>Player Stats</h1>
+          <img
+            src={logo}
+            className="App-logo w-36 position-absolute top-0"
+            alt="logo"
+          />
+        </div>
+        <div className="w-full overflow-x-scroll">
           <Table />
         </div>
       </header>

@@ -130,7 +130,7 @@ const Table = () => {
   const table = useMaterialReactTable({
     columns,
     data,
-    enableRowSelection: true,
+    enableRowSelection: false,
     getRowId: (row) => row.phoneNumber,
     initialState: { showColumnFilters: true },
     isMultiSortEvent: () => true, //now no need to hold `shift` key to multi-sort
@@ -160,7 +160,7 @@ const Table = () => {
     },
   });
 
-  return <MaterialReactTable table={table} />;
+  return <MaterialReactTable table={table}/>;
 };
 
 export default Table;
