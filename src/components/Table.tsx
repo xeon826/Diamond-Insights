@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComment, faRobot } from "@fortawesome/free-solid-svg-icons";
 import { TypeAnimation } from "react-type-animation";
+import loading from "./../loading.svg";
 import {
   MaterialReactTable,
   useMaterialReactTable,
@@ -333,9 +334,10 @@ const Table = () => {
                     500,
                     "Loading",
                   ]}
-                  style={{ fontSize: "0.75em" }}
+                  className="text-sm"
                   repeat={Infinity}
                 />
+                <img slot="loading" src={loading} alt="Loading..." />
               </div>
             ) : (
               <>
