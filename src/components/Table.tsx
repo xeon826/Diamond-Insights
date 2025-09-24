@@ -60,19 +60,20 @@ const Table = () => {
         setIsRefetching(true);
       }
 
-      // Build query params for sorting
+
+      // Build query params for sorting and pagination
       let params = new URLSearchParams();
       if (sorting.length > 0) {
         const ordering = sorting
-          .map((sort) => (sort.desc ? `-${sort.id}` : sort.id))
-          .join(",");
-        params.append("ordering", ordering);
+          .map(sort => (sort.desc ? `-${sort.id}` : sort.id))
+          .join(',');
+        params.append('ordering', ordering);
       }
-      // Add pagination if needed
-      // params.append('page', (pagination.pageIndex + 1).toString());
-      // params.append('page_size', pagination.pageSize.toString());
+      // Pagination params (Django expects 1-based page index)
+      params.append('page', (pagination.pageIndex + 1).toString());
+      params.append('page_size', pagination.pageSize.toString());
 
-      const url = new URL("/get-player-stats", API_URL);
+      const url = new URL('/get-player-stats', API_URL);
       url.search = params.toString();
 
       try {
