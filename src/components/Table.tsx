@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faComment, faRobot } from "@fortawesome/free-solid-svg-icons";
+import {
+  faComment,
+  faRobot,
+  faRotate,
+} from "@fortawesome/free-solid-svg-icons";
 import { TypeAnimation } from "react-type-animation";
 import loading from "./../loading.svg";
 import {
@@ -291,6 +295,19 @@ const Table = () => {
     onGlobalFilterChange: setGlobalFilter,
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
+    renderTopToolbarCustomActions: () => (
+      <div
+        style={{
+          width: '100%',
+          float: "right",
+          marginTop: '0.5rem'
+        }}
+      >
+        <button style={{ fontSize: "1.1rem", color: "#757575" }}>
+          <FontAwesomeIcon icon={faRotate} />
+        </button>
+      </div>
+    ),
     rowCount,
     state: {
       columnFilters,
