@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faComment,
@@ -66,45 +67,45 @@ const Table = () => {
     pageIndex: 0,
     pageSize: 10,
   });
+  const fetchData = async () => {
+    if (!data.length) {
+      setIsLoading(true);
+    } else {
+      setIsRefetching(true);
+    }
+
+    // Build query params for sorting and pagination
+    let params = new URLSearchParams();
+    if (sorting.length > 0) {
+      const ordering = sorting
+        .map((sort) => (sort.desc ? `-${sort.id}` : sort.id))
+        .join(",");
+      params.append("ordering", ordering);
+    }
+    // Pagination params (Django expects 1-based page index)
+    params.append("page", (pagination.pageIndex + 1).toString());
+    params.append("page_size", pagination.pageSize.toString());
+
+    const url = new URL("/get-player-stats", API_URL);
+    url.search = params.toString();
+
+    try {
+      const response = await fetch(url.href);
+      const json = await response.json();
+      setData(json.results);
+      setRowCount(json.total);
+    } catch (error) {
+      setIsError(true);
+      console.error(error);
+      return;
+    }
+    setIsError(false);
+    setIsLoading(false);
+    setIsRefetching(false);
+  };
 
   //if you want to avoid useEffect, look at the React Query example instead
   useEffect(() => {
-    const fetchData = async () => {
-      if (!data.length) {
-        setIsLoading(true);
-      } else {
-        setIsRefetching(true);
-      }
-
-      // Build query params for sorting and pagination
-      let params = new URLSearchParams();
-      if (sorting.length > 0) {
-        const ordering = sorting
-          .map((sort) => (sort.desc ? `-${sort.id}` : sort.id))
-          .join(",");
-        params.append("ordering", ordering);
-      }
-      // Pagination params (Django expects 1-based page index)
-      params.append("page", (pagination.pageIndex + 1).toString());
-      params.append("page_size", pagination.pageSize.toString());
-
-      const url = new URL("/get-player-stats", API_URL);
-      url.search = params.toString();
-
-      try {
-        const response = await fetch(url.href);
-        const json = await response.json();
-        setData(json.results);
-        setRowCount(json.total);
-      } catch (error) {
-        setIsError(true);
-        console.error(error);
-        return;
-      }
-      setIsError(false);
-      setIsLoading(false);
-      setIsRefetching(false);
-    };
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -177,8 +178,10 @@ const Table = () => {
       });
       if (!response.ok) {
         const data = await response.json();
-        setEditError(data.error || "Failed to save changes.");
+        const errorMsg = data.error || "Failed to save changes.";
+        setEditError(errorMsg);
         setEditSaving(false);
+        toast.error(errorMsg);
         return;
       }
       setEditModalOpen(false);
@@ -186,34 +189,14 @@ const Table = () => {
       setEditForm({});
       setEditError("");
       setEditSaving(false);
-      // Refetch data
       setIsRefetching(true);
-      const fetchData = async () => {
-        let params = new URLSearchParams();
-        if (sorting.length > 0) {
-          const ordering = sorting
-            .map((sort) => (sort.desc ? `-${sort.id}` : sort.id))
-            .join(",");
-          params.append("ordering", ordering);
-        }
-        params.append("page", (pagination.pageIndex + 1).toString());
-        params.append("page_size", pagination.pageSize.toString());
-        const url = new URL("/get-player-stats", API_URL);
-        url.search = params.toString();
-        try {
-          const response = await fetch(url.href);
-          const json = await response.json();
-          setData(json.results);
-          setRowCount(json.total);
-        } catch (error) {
-          setIsError(true);
-        }
-        setIsRefetching(false);
-      };
+      toast.success("Player data saved.");
+      // Refetch data
       fetchData();
     } catch (e) {
       setEditError("Error saving changes.");
       setEditSaving(false);
+      toast.error("Error saving changes.");
     }
   };
 
@@ -298,12 +281,27 @@ const Table = () => {
     renderTopToolbarCustomActions: () => (
       <div
         style={{
-          width: '100%',
+          width: "100%",
           float: "right",
-          marginTop: '0.5rem'
+          marginTop: "0.5rem",
         }}
       >
-        <button style={{ fontSize: "1.1rem", color: "#757575" }}>
+        <button
+          style={{ fontSize: "1.1rem", color: "#757575", float: "right" }}
+          alt="Refresh Data"
+          title="Refresh Data"
+          className="hover:text-black"
+          onClick={async () => {
+            try {
+              await fetch(`${API_URL}/refresh-data`, { method: "GET" });
+              fetchData();
+              toast.success("Data refreshed successfully!");
+            } catch (error) {
+              console.log(error);
+              toast.error("Failed to refresh data.");
+            }
+          }}
+        >
           <FontAwesomeIcon icon={faRotate} />
         </button>
       </div>
@@ -323,6 +321,7 @@ const Table = () => {
   return (
     <>
       <MaterialReactTable table={table} />
+      <ToastContainer />
       {modalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 text-black">
           <div className="bg-white p-6 rounded shadow-lg max-w-lg w-full relative">
