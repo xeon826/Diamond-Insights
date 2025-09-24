@@ -13,6 +13,26 @@ api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key)
 
 
+def edit_player(request, player_id):
+    try:
+        player = Player.objects.get(id=player_id)
+    except Player.DoesNotExist:
+        return JsonResponse({'error': 'Player not found'}, status=404)
+
+    if request.method == 'POST':
+        try:
+            body = json.loads(request.body.decode('utf-8'))
+        except Exception:
+            body = {}
+
+        for field, value in body.items():
+            if hasattr(player, field):
+                setattr(player, field, value)
+        player.save()
+        return JsonResponse({'status': 'success', 'player_id': player.id})
+
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
+
 @csrf_exempt
 def query_openai(request):
     if request.method == 'POST':
