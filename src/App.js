@@ -7,7 +7,9 @@ function App() {
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
-        <Table />
+        <div className="w-full overflow-scroll">
+          <Table />
+        </div>
       </header>
     </div>
   );

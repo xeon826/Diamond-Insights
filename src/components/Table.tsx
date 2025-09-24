@@ -60,20 +60,19 @@ const Table = () => {
         setIsRefetching(true);
       }
 
-
       // Build query params for sorting and pagination
       let params = new URLSearchParams();
       if (sorting.length > 0) {
         const ordering = sorting
-          .map(sort => (sort.desc ? `-${sort.id}` : sort.id))
-          .join(',');
-        params.append('ordering', ordering);
+          .map((sort) => (sort.desc ? `-${sort.id}` : sort.id))
+          .join(",");
+        params.append("ordering", ordering);
       }
       // Pagination params (Django expects 1-based page index)
-      params.append('page', (pagination.pageIndex + 1).toString());
-      params.append('page_size', pagination.pageSize.toString());
+      params.append("page", (pagination.pageIndex + 1).toString());
+      params.append("page_size", pagination.pageSize.toString());
 
-      const url = new URL('/get-player-stats', API_URL);
+      const url = new URL("/get-player-stats", API_URL);
       url.search = params.toString();
 
       try {
@@ -114,7 +113,12 @@ const Table = () => {
       { accessorKey: "run_batted_in", header: "Run Batted In" },
       { accessorKey: "a_walk", header: "Walks" },
       { accessorKey: "strikeouts", header: "Strikeouts" },
-      { accessorKey: "stolen_base", header: "Stolen Base" },
+      {
+        accessorKey: "stolen_base",
+        header: "Stolen Base",
+        filterVariant: "range",
+        filterFn: "between",
+      },
       { accessorKey: "caught_stealing", header: "Caught Stealing" },
       { accessorKey: "avg", header: "AVG" },
       { accessorKey: "on_base_percentage", header: "On-base %" },
