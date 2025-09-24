@@ -7,7 +7,13 @@ from django.http import HttpResponse
 import requests
 
 def get_player_stats(request):
-    players = list(Player.objects.all().values())
+    ordering = request.GET.get('ordering')
+    qs = Player.objects.all()
+    if ordering:
+        # Split by comma for multi-field ordering
+        ordering_fields = [field.strip() for field in ordering.split(',')]
+        qs = qs.order_by(*ordering_fields)
+    players = list(qs.values())
     return JsonResponse(players, safe=False)
 
 def refresh_data(request):

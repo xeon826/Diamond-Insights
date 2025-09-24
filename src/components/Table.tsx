@@ -30,6 +30,8 @@ type User = {
   on_base_plus_slugging: number;
 };
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 const Table = () => {
   //data and fetching state
   const [data, setData] = useState<User[]>([]);
@@ -58,14 +60,25 @@ const Table = () => {
         setIsRefetching(true);
       }
 
-      // const url = new URL('https://api.hirefraction.com/api/test/baseball');
-      const API_URL = process.env.REACT_APP_API_URL;
+      // Build query params for sorting
+      let params = new URLSearchParams();
+      if (sorting.length > 0) {
+        const ordering = sorting
+          .map((sort) => (sort.desc ? `-${sort.id}` : sort.id))
+          .join(",");
+        params.append("ordering", ordering);
+      }
+      // Add pagination if needed
+      // params.append('page', (pagination.pageIndex + 1).toString());
+      // params.append('page_size', pagination.pageSize.toString());
+
       const url = new URL("/get-player-stats", API_URL);
+      url.search = params.toString();
+
       try {
         const response = await fetch(url.href);
         const json = (await response.json()) as User[];
         setData(json);
-        console.log(json);
         setRowCount(json.length);
       } catch (error) {
         setIsError(true);
@@ -79,11 +92,11 @@ const Table = () => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    columnFilters, //re-fetch when column filters change
-    globalFilter, //re-fetch when global filter changes
-    pagination.pageIndex, //re-fetch when page index changes
-    pagination.pageSize, //re-fetch when page size changes
-    sorting, //re-fetch when sorting changes
+    columnFilters,
+    globalFilter,
+    pagination.pageIndex,
+    pagination.pageSize,
+    sorting,
   ]);
 
   const columns = useMemo<MRT_ColumnDef<User>[]>(
@@ -115,6 +128,8 @@ const Table = () => {
     enableRowSelection: true,
     getRowId: (row) => row.phoneNumber,
     initialState: { showColumnFilters: true },
+    isMultiSortEvent: () => true, //now no need to hold `shift` key to multi-sort
+    maxMultiSortColCount: 3,
     manualFiltering: true,
     manualPagination: true,
     manualSorting: true,
