@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faComment } from "@fortawesome/free-solid-svg-icons";
+import { faComment, faRobot } from "@fortawesome/free-solid-svg-icons";
 import {
   MaterialReactTable,
   useMaterialReactTable,
@@ -222,7 +222,12 @@ const Table = () => {
             {modalLoading ? (
               <div>Loading...</div>
             ) : (
-              <div className="whitespace-pre-wrap">{modalContent}</div>
+              <>
+                <p className="speech bubble whitespace-pre-wrap text-sm">{modalContent}</p>
+                <div>
+                  <FontAwesomeIcon className="ml-2 float-left" icon={faRobot} />
+                </div>
+              </>
             )}
           </div>
         </div>
