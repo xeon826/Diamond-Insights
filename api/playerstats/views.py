@@ -12,13 +12,13 @@ def get_player_stats(request):
     page_size = int(request.GET.get('page_size', 10))
     qs = Player.objects.all()
     if ordering:
-        # Split by comma for multi-field ordering
         ordering_fields = [field.strip() for field in ordering.split(',')]
         qs = qs.order_by(*ordering_fields)
+    total = qs.count()
     start = (page - 1) * page_size
     end = start + page_size
     players = list(qs.values()[start:end])
-    return JsonResponse(players, safe=False)
+    return JsonResponse({'results': players, 'total': total})
 
 def refresh_data(request):
     response = requests.get("https://api.hirefraction.com/api/test/baseball")

@@ -77,9 +77,9 @@ const Table = () => {
 
       try {
         const response = await fetch(url.href);
-        const json = (await response.json()) as User[];
-        setData(json);
-        setRowCount(json.length);
+        const json = await response.json();
+        setData(json.results);
+        setRowCount(json.total);
       } catch (error) {
         setIsError(true);
         console.error(error);
@@ -160,7 +160,7 @@ const Table = () => {
     },
   });
 
-  return <MaterialReactTable table={table}/>;
+  return <MaterialReactTable table={table} />;
 };
 
 export default Table;
