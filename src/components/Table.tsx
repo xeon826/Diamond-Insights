@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faComment } from "@fortawesome/free-solid-svg-icons";
 import {
   MaterialReactTable,
   useMaterialReactTable,
@@ -39,6 +41,9 @@ const Table = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isRefetching, setIsRefetching] = useState(false);
   const [rowCount, setRowCount] = useState(0);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState("");
+  const [modalLoading, setModalLoading] = useState(false);
 
   //table state
   const [columnFilters, setColumnFilters] = useState<MRT_ColumnFiltersState>(
@@ -98,9 +103,50 @@ const Table = () => {
     pagination.pageSize,
     sorting,
   ]);
+  const handleOpenModal = async (player: User) => {
+    setModalOpen(true);
+    setModalLoading(true);
+    setModalContent("");
+    try {
+      const response = await fetch(`${API_URL}/query-openai`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt: `Tell me about ${player.player_name}. Stats: ${JSON.stringify(player)}`,
+        }),
+      });
+      const data = await response.json();
+      setModalContent(data.response || "No response from OpenAI.");
+    } catch (e) {
+      setModalContent("Error fetching OpenAI response.");
+    }
+    setModalLoading(false);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setModalContent("");
+  };
 
   const columns = useMemo<MRT_ColumnDef<User>[]>(
     () => [
+      {
+        header: "AI Summary",
+        id: "ai-summary",
+        Cell: ({ row }) => (
+          <button
+            className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+            onClick={() => handleOpenModal(row.original)}
+          >
+            Ask AI
+            <FontAwesomeIcon className="ml-2" icon={faComment} />
+          </button>
+        ),
+        enableSorting: false,
+        enableColumnFilter: false,
+      },
       { accessorKey: "player_name", header: "Player Name" },
       { accessorKey: "position", header: "Position" },
       { accessorKey: "games", header: "Games" },
@@ -116,8 +162,6 @@ const Table = () => {
       {
         accessorKey: "stolen_base",
         header: "Stolen Base",
-        filterVariant: "range",
-        filterFn: "between",
       },
       { accessorKey: "caught_stealing", header: "Caught Stealing" },
       { accessorKey: "avg", header: "AVG" },
@@ -135,6 +179,8 @@ const Table = () => {
     initialState: { showColumnFilters: true },
     isMultiSortEvent: () => true, //now no need to hold `shift` key to multi-sort
     maxMultiSortColCount: 3,
+    enableColumnFilters: false,
+    enableGlobalFilter: false,
     manualFiltering: true,
     manualPagination: true,
     manualSorting: true,
@@ -160,7 +206,29 @@ const Table = () => {
     },
   });
 
-  return <MaterialReactTable table={table} />;
+  return (
+    <>
+      <MaterialReactTable table={table} />
+      {modalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-6 rounded shadow-lg max-w-lg w-full relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+              onClick={handleCloseModal}
+            >
+              &times;
+            </button>
+            <h2 className="text-lg font-bold mb-2">AI Response</h2>
+            {modalLoading ? (
+              <div>Loading...</div>
+            ) : (
+              <div className="whitespace-pre-wrap">{modalContent}</div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
 };
 
 export default Table;

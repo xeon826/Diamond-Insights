@@ -5,6 +5,22 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 import requests
+import openai
+import os
+
+api_key = os.getenv('OPENAI_API_KEY')
+@csrf_exempt
+async def query_openai(messages):
+    openai.api_key = api_key
+    response = await openai.ChatCompletion.create(
+        model="gpt-4-turbo",
+        messages=messages,
+        max_tokens=500,
+        n=1,
+        stop=None,
+        temperature=0.7,
+    )
+    return response.choices[0].message['content']
 
 def get_player_stats(request):
     ordering = request.GET.get('ordering')
