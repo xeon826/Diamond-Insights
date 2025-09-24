@@ -45,6 +45,11 @@ const Table = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState("");
   const [modalLoading, setModalLoading] = useState(false);
+  const [editPlayer, setEditPlayer] = useState<User | null>(null);
+  const [editForm, setEditForm] = useState<Partial<User>>({});
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState("");
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   //table state
   const [columnFilters, setColumnFilters] = useState<MRT_ColumnFiltersState>(
@@ -131,6 +136,82 @@ const Table = () => {
     setModalContent("");
   };
 
+  const handleOpenEditModal = (player: User) => {
+    setEditPlayer(player);
+    setEditForm({ ...player });
+    setEditError("");
+    setEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setEditModalOpen(false);
+    setEditPlayer(null);
+    setEditForm({});
+    setEditError("");
+  };
+
+  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type } = e.target;
+    setEditForm((prev) => ({
+      ...prev,
+      [name]: type === "number" ? Number(value) : value,
+    }));
+  };
+
+  const handleEditSave = async () => {
+    if (!editPlayer) return;
+    setEditSaving(true);
+    setEditError("");
+    try {
+      const response = await fetch(`${API_URL}/edit-player/${editPlayer.id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(editForm),
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        setEditError(data.error || "Failed to save changes.");
+        setEditSaving(false);
+        return;
+      }
+      setEditModalOpen(false);
+      setEditPlayer(null);
+      setEditForm({});
+      setEditError("");
+      setEditSaving(false);
+      // Refetch data
+      setIsRefetching(true);
+      const fetchData = async () => {
+        let params = new URLSearchParams();
+        if (sorting.length > 0) {
+          const ordering = sorting
+            .map((sort) => (sort.desc ? `-${sort.id}` : sort.id))
+            .join(",");
+          params.append("ordering", ordering);
+        }
+        params.append("page", (pagination.pageIndex + 1).toString());
+        params.append("page_size", pagination.pageSize.toString());
+        const url = new URL("/get-player-stats", API_URL);
+        url.search = params.toString();
+        try {
+          const response = await fetch(url.href);
+          const json = await response.json();
+          setData(json.results);
+          setRowCount(json.total);
+        } catch (error) {
+          setIsError(true);
+        }
+        setIsRefetching(false);
+      };
+      fetchData();
+    } catch (e) {
+      setEditError("Error saving changes.");
+      setEditSaving(false);
+    }
+  };
+
   const columns = useMemo<MRT_ColumnDef<User>[]>(
     () => [
       {
@@ -143,6 +224,20 @@ const Table = () => {
           >
             Ask AI
             <FontAwesomeIcon className="ml-2" icon={faComment} />
+          </button>
+        ),
+        enableSorting: false,
+        enableColumnFilter: false,
+      },
+      {
+        header: "Edit",
+        id: "edit-player",
+        Cell: ({ row }) => (
+          <button
+            className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+            onClick={() => handleOpenEditModal(row.original)}
+          >
+            Edit
           </button>
         ),
         enableSorting: false,
@@ -221,27 +316,115 @@ const Table = () => {
             </button>
             <h2 className="text-lg font-bold mb-2">AI Response</h2>
             {modalLoading ? (
-              <div>Loading...</div>
+              <div>
+                <TypeAnimation
+                  sequence={[
+                    "Loading",
+                    500,
+                    "Loading.", //  Continuing previous Text
+                    500,
+                    "Loading..",
+                    500,
+                    "Loading...",
+                    500,
+                    "Loading..",
+                    500,
+                    "Loading.",
+                    500,
+                    "Loading",
+                  ]}
+                  style={{ fontSize: "0.75em" }}
+                  repeat={Infinity}
+                />
+              </div>
             ) : (
               <>
-                <div className="overflow-y-auto">
-                  <p className="speech bubble whitespace-pre-wrap text-sm">
-                    <TypeAnimation
-                      sequence={[modalContent]}
-                      style={{ fontSize: "0.75em" }}
-                      speed={100}
-                      repeat={false}
-                    />
-                  </p>
-                  <div>
-                    <FontAwesomeIcon
-                      className="ml-2 float-left"
-                      icon={faRobot}
-                    />
-                  </div>
+                <p className="speech bubble whitespace-pre-wrap text-sm">
+                  <TypeAnimation
+                    sequence={[modalContent]}
+                    style={{ fontSize: "0.75em" }}
+                    speed={100}
+                    repeat={false}
+                  />
+                </p>
+
+                <div>
+                  <FontAwesomeIcon className="ml-2 float-left" icon={faRobot} />
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}{" "}
+      {editModalOpen && editPlayer && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 text-black">
+          <div className="bg-white p-6 rounded shadow-lg max-w-lg w-full relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+              onClick={handleCloseEditModal}
+            >
+              &times;
+            </button>
+            <h2 className="text-lg font-bold mb-2">Edit Player</h2>
+            <form
+              className="grid grid-cols-4 gap-2 overflow-y-auto"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleEditSave();
+              }}
+            >
+              {[
+                "player_name",
+                "position",
+                "games",
+                "at_bat",
+                "runs",
+                "hits",
+                "double_2b",
+                "third_baseman",
+                "home_run",
+                "run_batted_in",
+                "a_walk",
+                "strikeouts",
+                "stolen_base",
+                "caught_stealing",
+                "avg",
+                "on_base_percentage",
+                "slugging_percentage",
+                "on_base_plus_slugging",
+              ].map((key) => (
+                <div key={key} className="col-span-2">
+                  <label
+                    className="block text-xs font-semibold mb-1 capitalize"
+                    htmlFor={key}
+                  >
+                    {key.replace(/_/g, " ")}
+                  </label>
+                  <input
+                    className="w-full border px-2 py-1 rounded text-sm"
+                    type={
+                      typeof editForm[key as keyof User] === "number"
+                        ? "number"
+                        : "text"
+                    }
+                    name={key}
+                    id={key}
+                    value={editForm[key as keyof User] ?? ""}
+                    onChange={handleEditChange}
+                  />
+                </div>
+              ))}
+              {editError && (
+                <div className="col-span-2 text-red-500">{editError}</div>
+              )}
+              <button
+                type="submit"
+                className="col-span-4 mt-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                disabled={editSaving}
+              >
+                {editSaving ? "Saving..." : "Save"}
+              </button>
+            </form>
           </div>
         </div>
       )}

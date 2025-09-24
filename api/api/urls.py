@@ -23,4 +23,5 @@ urlpatterns = [
     path('get-player-stats', playerstats_views.get_player_stats),
     path('refresh-data', playerstats_views.refresh_data),
     path('query-openai', playerstats_views.query_openai),
+    path('edit-player/<int:player_id>', playerstats_views.edit_player),
 ]

@@ -13,6 +13,7 @@ api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key)
 
 
+@csrf_exempt
 def edit_player(request, player_id):
     try:
         player = Player.objects.get(id=player_id)
