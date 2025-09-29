@@ -42,8 +42,19 @@ type User = {
 
 const API_URL = process.env.REACT_APP_API_URL;
 
+/**
+ * Table component for displaying and editing player statistics.
+ * 
+ * Features:
+ * - Fetches player data from an API with pagination and sorting.
+ * - Displays data in a Material React Table with custom columns.
+ * - Allows AI summary requests for each player via OpenAI.
+ * - Supports editing player data in a modal form.
+ * - Handles loading, error, and refetching states.
+ * - Provides a refresh button to reload data from the API.
+ */
 const Table = () => {
-  //data and fetching state
+  // Data and fetching state
   const [data, setData] = useState<User[]>([]);
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -58,7 +69,7 @@ const Table = () => {
   const [editError, setEditError] = useState("");
   const [editModalOpen, setEditModalOpen] = useState(false);
 
-  //table state
+  // Table state for filters, sorting, and pagination
   const [columnFilters, setColumnFilters] = useState<MRT_ColumnFiltersState>(
     [],
   );
@@ -68,6 +79,11 @@ const Table = () => {
     pageIndex: 0,
     pageSize: 10,
   });
+
+  /**
+   * Fetch player data from the API with current sorting and pagination.
+   * Handles loading and error states.
+   */
   const fetchData = async () => {
     if (!data.length) {
       setIsLoading(true);
@@ -105,7 +121,7 @@ const Table = () => {
     setIsRefetching(false);
   };
 
-  //if you want to avoid useEffect, look at the React Query example instead
+  // Fetch data on mount and when table state changes
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -116,6 +132,11 @@ const Table = () => {
     pagination.pageSize,
     sorting,
   ]);
+
+  /**
+   * Open the AI summary modal for a player and fetch the AI response.
+   * @param player The player to summarize.
+   */
   const handleOpenModal = async (player: User) => {
     setModalOpen(true);
     setModalLoading(true);
@@ -138,11 +159,16 @@ const Table = () => {
     setModalLoading(false);
   };
 
+  /** Close the AI summary modal. */
   const handleCloseModal = () => {
     setModalOpen(false);
     setModalContent("");
   };
 
+  /**
+   * Open the edit modal for a player.
+   * @param player The player to edit.
+   */
   const handleOpenEditModal = (player: User) => {
     setEditPlayer(player);
     setEditForm({ ...player });
@@ -150,6 +176,7 @@ const Table = () => {
     setEditModalOpen(true);
   };
 
+  /** Close the edit modal and reset edit state. */
   const handleCloseEditModal = () => {
     setEditModalOpen(false);
     setEditPlayer(null);
@@ -157,6 +184,10 @@ const Table = () => {
     setEditError("");
   };
 
+  /**
+   * Handle changes in the edit form inputs.
+   * @param e The input change event.
+   */
   const handleEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
     setEditForm((prev) => ({
@@ -165,6 +196,10 @@ const Table = () => {
     }));
   };
 
+  /**
+   * Save the edited player data to the API.
+   * Handles loading, error, and success states.
+   */
   const handleEditSave = async () => {
     if (!editPlayer) return;
     setEditSaving(true);
@@ -201,6 +236,10 @@ const Table = () => {
     }
   };
 
+  /**
+   * Column definitions for the Material React Table.
+   * Includes AI summary and edit actions, plus all player stat fields.
+   */
   const columns = useMemo<MRT_ColumnDef<User>[]>(
     () => [
       {
@@ -256,6 +295,11 @@ const Table = () => {
     ],
     [],
   );
+
+  /**
+   * Material React Table instance configuration.
+   * Handles table state, actions, and custom toolbar.
+   */
   const table = useMaterialReactTable({
     columns,
     data,
