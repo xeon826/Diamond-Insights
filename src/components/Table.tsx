@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import React from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -259,7 +260,7 @@ const Table = () => {
     columns,
     data,
     enableRowSelection: false,
-    getRowId: (row) => row.phoneNumber,
+    getRowId: (row) => row.id.toString(),
     initialState: { showColumnFilters: true },
     isMultiSortEvent: () => true, //now no need to hold `shift` key to multi-sort
     maxMultiSortColCount: 3,
@@ -288,7 +289,6 @@ const Table = () => {
       >
         <button
           style={{ fontSize: "1.1rem", color: "#757575", float: "right" }}
-          alt="Refresh Data"
           title="Refresh Data"
           className="hover:text-black"
           onClick={async () => {
@@ -361,8 +361,8 @@ const Table = () => {
                   <TypeAnimation
                     sequence={[modalContent]}
                     style={{ fontSize: "0.75em" }}
-                    speed={100}
-                    repeat={false}
+                    speed={99}
+                    repeat={0}
                   />
                 </p>
 
