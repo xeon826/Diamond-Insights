@@ -260,7 +260,7 @@ const Table = () => {
     columns,
     data,
     enableRowSelection: false,
-    getRowId: (row) => row.id.toString(),
+    getRowId: (row) => (row.id !== undefined ? row.id.toString() : ""),
     initialState: { showColumnFilters: true },
     isMultiSortEvent: () => true, //now no need to hold `shift` key to multi-sort
     maxMultiSortColCount: 3,
